@@ -80,6 +80,7 @@
     cursor:pointer; padding:0 8px;
   }
   .slot.filled{border-style:solid; border-color:var(--blue); background:#eaf2fd; color:var(--ink);}
+  .slot.wrong{border-color:var(--red); background:#fdeaea;}
   .slot.over{border-color:var(--green); background:#e8f7e4; border-style:solid;}
   .chiprow{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 4px;}
   .chip{
@@ -285,13 +286,13 @@ function render(){
     q.opts.forEach((o,i)=>{ h+='<button class="opt" data-n="'+i+'">'+o+"</button>"; });
     h+="</div>";
   }else{
-    let sel=q.sel||null;
+    const hasWrong = Q[qi].tried;
     q.rows.forEach((row,ri)=>{
       h+='<div class="frow">';
       row.forEach((_,si)=>{
         const v=q.slots[ri][si];
-        const chosen = sel!==null && sel.r===ri && sel.s===si;
-        h+='<div class="slot'+(v?" filled":"")+(chosen?" sel":"")+'" data-r="'+ri+'" data-s="'+si+'">'+(v||"？")+"</div>";
+        const wrongFill = hasWrong && v!==null && v!==q.rows[ri][si];
+        h+='<div class="slot'+(v?" filled":"")+(wrongFill?" wrong":"")+'" data-r="'+ri+'" data-s="'+si+'">'+(v||"？")+"</div>";
       });
       h+="</div>";
     });
