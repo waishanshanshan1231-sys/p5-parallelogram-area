@@ -382,6 +382,7 @@ gameArea.addEventListener("pointerdown",e=>{
   const chip=e.target.closest ? e.target.closest(".chip") : null;
   if(!chip) return;
   e.preventDefault();
+  try{ chip.setPointerCapture(e.pointerId); }catch(_){}   // 持續接收 move/up（iOS Safari 必需）
   dragChip={r:+chip.dataset.r, t:chip.dataset.t, el:chip};
   chip.classList.add("drag");
   chip.style.left=e.clientX+"px";
@@ -392,7 +393,10 @@ gameArea.addEventListener("pointermove",e=>{
   e.preventDefault();
   dragChip.el.style.left=e.clientX+"px";
   dragChip.el.style.top=e.clientY+"px";
-  const over=e.target.closest ? e.target.closest(".slot") : null;
+  // iOS Safari: 隱式 pointer capture 讓 e.target 永遠是 chip 自己，
+  // 用 elementFromPoint 找手指/游標下的 slot（.drag 是 pointer-events:none，不會擋）
+  const under=document.elementFromPoint(e.clientX,e.clientY);
+  const over=under && under.closest ? under.closest(".slot") : null;
   gameArea.querySelectorAll(".slot").forEach(s=>s.classList.remove("over"));
   if(over) over.classList.add("over");
 });
@@ -403,7 +407,8 @@ gameArea.addEventListener("pointerup",e=>{
   d.el.style.left=""; d.el.style.top="";
   gameArea.querySelectorAll(".slot").forEach(s=>s.classList.remove("over"));
   const q=Q[qi];
-  const slot=e.target.closest ? e.target.closest(".slot") : null;
+  const under=document.elementFromPoint(e.clientX,e.clientY);   // 同上，別靠 e.target
+  const slot=under && under.closest ? under.closest(".slot") : null;
   if(slot && q.type==="order"){
     const r=+slot.dataset.r, s=+slot.dataset.s;
     const ci=q.pool.findIndex(c=>c.r===d.r&&c.t===d.t);
